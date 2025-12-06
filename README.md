@@ -69,12 +69,23 @@ The architecture supports the following platforms:
 dotnet workload install android ios wasm-tools
 ```
 
+## Documentation
+
+- 📖 [Quick Start Guide](QUICKSTART.md) - Get running in 5 minutes
+- 🏗️ [Architecture Overview](ARCHITECTURE.md) - Detailed system design
+- 💻 [Development Guide](DEVELOPMENT.md) - Developer workflows and best practices
+- 🌍 [Cross-Platform Support](CROSS_PLATFORM.md) - Platform-specific details
+
 ## Getting Started
 
 ### Prerequisites
 
 - .NET 10 SDK
 - Visual Studio 2022 / VS Code / Rider (optional)
+
+### Quick Start
+
+See the [Quick Start Guide](QUICKSTART.md) for step-by-step instructions.
 
 ### Building the Solution
 
