@@ -1,0 +1,55 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+    
+    - name: Restore dependencies
+      run: dotnet restore src/Backend/EvergineDemo.Backend/EvergineDemo.Backend.csproj
+    
+    - name: Build Backend
+      run: dotnet build src/Backend/EvergineDemo.Backend/EvergineDemo.Backend.csproj --no-restore --configuration Release
+    
+    - name: Build Shared Library
+      run: dotnet build src/Shared/EvergineDemo.Shared/EvergineDemo.Shared.csproj --configuration Release
+    
+    - name: Build Desktop Frontend
+      run: dotnet build src/Frontend/EvergineDemo.Frontend.Desktop/EvergineDemo.Frontend.Desktop.csproj --no-restore --configuration Release
+    
+    # Uncomment when tests are added
+    # - name: Test
+    #   run: dotnet test --no-build --verbosity normal --configuration Release
+    
+    - name: Upload Backend Artifacts
+      if: matrix.os == 'ubuntu-latest'
+      uses: actions/upload-artifact@v4
+      with:
+        name: backend-${{ matrix.os }}
+        path: src/Backend/EvergineDemo.Backend/bin/Release/net10.0/
+    
+    - name: Upload Desktop Frontend Artifacts
+      if: matrix.os == 'ubuntu-latest'
+      uses: actions/upload-artifact@v4
+      with:
+        name: desktop-${{ matrix.os }}
+        path: src/Frontend/EvergineDemo.Frontend.Desktop/bin/Release/net10.0/
