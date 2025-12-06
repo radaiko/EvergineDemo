@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using System.Collections.ObjectModel;
+using Avalonia.Platform.Storage;
 
 namespace EvergineDemo.Frontend.Desktop.ViewModels;
 
@@ -26,10 +27,19 @@ public partial class MainWindowViewModel : ViewModelBase
     private ObservableCollection<ModelState> _models = new();
 
     private HubConnection? _hubConnection;
+    private IStorageProvider? _storageProvider;
 
     public MainWindowViewModel()
     {
         // Don't auto-connect anymore, let user configure server URL first
+    }
+
+    /// <summary>
+    /// Set the storage provider for file picker operations
+    /// </summary>
+    public void SetStorageProvider(IStorageProvider storageProvider)
+    {
+        _storageProvider = storageProvider;
     }
 
     [RelayCommand]
@@ -37,17 +47,56 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         try
         {
-            // For demo purposes, create a mock STL file upload
-            // In a real implementation, use a file picker dialog
-            StatusText = "Loading STL file...";
+            if (_storageProvider == null)
+            {
+                StatusText = "Storage provider not initialized";
+                return;
+            }
 
-            var fileName = $"model_{DateTime.Now:HHmmss}.stl";
-            var mockStlContent = "mock stl content"; // Replace with actual file picker
-            var base64Content = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(mockStlContent));
+            // Open file picker dialog
+            var fileTypes = new FilePickerFileType[]
+            {
+                new("STL Files")
+                {
+                    Patterns = new[] { "*.stl", "*.STL" },
+                    MimeTypes = new[] { "application/vnd.ms-pki.stl", "model/stl" }
+                },
+                new("All Files")
+                {
+                    Patterns = new[] { "*.*" }
+                }
+            };
+
+            var options = new FilePickerOpenOptions
+            {
+                Title = "Select STL File",
+                AllowMultiple = false,
+                FileTypeFilter = fileTypes
+            };
+
+            var files = await _storageProvider.OpenFilePickerAsync(options);
+            
+            if (files == null || files.Count == 0)
+            {
+                StatusText = "No file selected";
+                return;
+            }
+
+            var file = files[0];
+            StatusText = $"Loading {file.Name}...";
+
+            // Read file content
+            await using var stream = await file.OpenReadAsync();
+            using var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+            var fileBytes = memoryStream.ToArray();
+
+            // Convert to base64
+            var base64Content = Convert.ToBase64String(fileBytes);
 
             var request = new UploadStlRequest
             {
-                FileName = fileName,
+                FileName = file.Name,
                 FileContent = base64Content
             };
 
@@ -58,7 +107,7 @@ public partial class MainWindowViewModel : ViewModelBase
             
             if (response.IsSuccessStatusCode)
             {
-                StatusText = $"Successfully loaded {fileName}";
+                StatusText = $"Successfully loaded {file.Name}";
             }
             else
             {
