@@ -3,8 +3,22 @@ using EvergineDemo.Backend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure Kestrel to allow larger request bodies (for STL file uploads)
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.Limits.MaxRequestBodySize = 100 * 1024 * 1024; // 100 MB
+});
+
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    // Allow larger request bodies for STL file uploads
+    options.MaxModelBindingCollectionSize = int.MaxValue;
+}).AddJsonOptions(options =>
+{
+    // Configure JSON to handle large payloads
+    options.JsonSerializerOptions.DefaultBufferSize = 100 * 1024 * 1024; // 100 MB
+});
 builder.Services.AddOpenApi();
 
 // Add SignalR

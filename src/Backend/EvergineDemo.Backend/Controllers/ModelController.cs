@@ -21,6 +21,7 @@ public class ModelController : ControllerBase
     /// Upload an STL file and add it to the simulation
     /// </summary>
     [HttpPost("upload")]
+    [RequestSizeLimit(100 * 1024 * 1024)] // 100 MB limit
     public async Task<ActionResult<ModelState>> UploadStl([FromBody] UploadStlRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.FileName))
