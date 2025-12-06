@@ -27,6 +27,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvergineDemo.Frontend.Cross
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvergineDemo.Frontend.CrossPlatform.Browser", "src\Frontend\EvergineDemo.Frontend.CrossPlatform\EvergineDemo.Frontend.CrossPlatform.Browser\EvergineDemo.Frontend.CrossPlatform.Browser.csproj", "{CEB2208B-D7A5-4521-9B0B-3EC809D0BE0C}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0AB3BF05-4346-4AA6-1389-037BE0695223}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvergineDemo.Shared.Tests", "tests\EvergineDemo.Shared.Tests\EvergineDemo.Shared.Tests.csproj", "{CCF6F1A0-C2B8-4378-A31C-33EF4AEBF38E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -121,6 +125,18 @@ Global
 		{CEB2208B-D7A5-4521-9B0B-3EC809D0BE0C}.Release|x64.Build.0 = Release|Any CPU
 		{CEB2208B-D7A5-4521-9B0B-3EC809D0BE0C}.Release|x86.ActiveCfg = Release|Any CPU
 		{CEB2208B-D7A5-4521-9B0B-3EC809D0BE0C}.Release|x86.Build.0 = Release|Any CPU
+		{CCF6F1A0-C2B8-4378-A31C-33EF4AEBF38E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CCF6F1A0-C2B8-4378-A31C-33EF4AEBF38E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CCF6F1A0-C2B8-4378-A31C-33EF4AEBF38E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{CCF6F1A0-C2B8-4378-A31C-33EF4AEBF38E}.Debug|x64.Build.0 = Debug|Any CPU
+		{CCF6F1A0-C2B8-4378-A31C-33EF4AEBF38E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CCF6F1A0-C2B8-4378-A31C-33EF4AEBF38E}.Debug|x86.Build.0 = Debug|Any CPU
+		{CCF6F1A0-C2B8-4378-A31C-33EF4AEBF38E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CCF6F1A0-C2B8-4378-A31C-33EF4AEBF38E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CCF6F1A0-C2B8-4378-A31C-33EF4AEBF38E}.Release|x64.ActiveCfg = Release|Any CPU
+		{CCF6F1A0-C2B8-4378-A31C-33EF4AEBF38E}.Release|x64.Build.0 = Release|Any CPU
+		{CCF6F1A0-C2B8-4378-A31C-33EF4AEBF38E}.Release|x86.ActiveCfg = Release|Any CPU
+		{CCF6F1A0-C2B8-4378-A31C-33EF4AEBF38E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -137,5 +153,6 @@ Global
 		{F3E27615-9A93-4DE3-B3BA-2EACE4F59C0D} = {624FBCFC-8546-49BA-7BEB-B71AA52E393D}
 		{30BDA182-A304-4125-B628-B7AA1B03055D} = {624FBCFC-8546-49BA-7BEB-B71AA52E393D}
 		{CEB2208B-D7A5-4521-9B0B-3EC809D0BE0C} = {624FBCFC-8546-49BA-7BEB-B71AA52E393D}
+		{CCF6F1A0-C2B8-4378-A31C-33EF4AEBF38E} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 	EndGlobalSection
 EndGlobal
