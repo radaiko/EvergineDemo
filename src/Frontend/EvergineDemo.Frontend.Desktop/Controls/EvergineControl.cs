@@ -130,7 +130,7 @@ public class EvergineControl : OpenGlControlBase
     /// <summary>
     /// Render a placeholder visualization for a model
     /// </summary>
-    private void RenderModelPlaceholder(GlInterface gl, object model)
+    private void RenderModelPlaceholder(GlInterface gl, EvergineRenderingService.ModelSceneObject model)
     {
         // This is a placeholder for model rendering
         // A full implementation would:

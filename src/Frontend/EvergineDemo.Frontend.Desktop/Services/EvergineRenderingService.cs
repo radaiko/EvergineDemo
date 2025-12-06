@@ -13,6 +13,9 @@ namespace EvergineDemo.Frontend.Desktop.Services;
 /// </summary>
 public class EvergineRenderingService : IDisposable
 {
+    private const int DefaultWidth = 800;
+    private const int DefaultHeight = 600;
+
     private bool _initialized = false;
     private int _width;
     private int _height;
@@ -40,8 +43,8 @@ public class EvergineRenderingService : IDisposable
             return;
         }
 
-        _width = width > 0 ? width : 800;
-        _height = height > 0 ? height : 600;
+        _width = width > 0 ? width : DefaultWidth;
+        _height = height > 0 ? height : DefaultHeight;
 
         try
         {

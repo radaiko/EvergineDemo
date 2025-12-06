@@ -1,3 +1,4 @@
+using System;
 using Avalonia.Controls;
 using EvergineDemo.Frontend.Desktop.ViewModels;
 using EvergineDemo.Frontend.Desktop.Services;
@@ -34,13 +35,20 @@ public partial class MainWindow : Window
         };
 
         // Clean up on close
-        Closing += (s, e) =>
+        Closing += async (s, e) =>
         {
             _renderingService?.Dispose();
             
             if (DataContext is MainWindowViewModel viewModel)
             {
-                _ = viewModel.DisconnectAsync();
+                try
+                {
+                    await viewModel.DisconnectAsync();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error disconnecting: {ex.Message}");
+                }
             }
         };
     }
