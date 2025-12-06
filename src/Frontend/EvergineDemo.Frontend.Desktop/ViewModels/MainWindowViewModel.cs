@@ -51,9 +51,10 @@ public partial class MainWindowViewModel : ViewModelBase
                 FileContent = base64Content
             };
 
-            // Send to backend
+            // Send to backend - use clean URL
+            var cleanUrl = ServerUrl.TrimEnd('/');
             using var httpClient = new System.Net.Http.HttpClient();
-            var response = await httpClient.PostAsJsonAsync($"{ServerUrl}/api/model/upload", request);
+            var response = await httpClient.PostAsJsonAsync($"{cleanUrl}/api/model/upload", request);
             
             if (response.IsSuccessStatusCode)
             {
