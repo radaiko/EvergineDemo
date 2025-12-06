@@ -10,15 +10,7 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
 });
 
 // Add services to the container.
-builder.Services.AddControllers(options =>
-{
-    // Allow larger request bodies for STL file uploads
-    options.MaxModelBindingCollectionSize = int.MaxValue;
-}).AddJsonOptions(options =>
-{
-    // Configure JSON to handle large payloads
-    options.JsonSerializerOptions.DefaultBufferSize = 100 * 1024 * 1024; // 100 MB
-});
+builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 // Add SignalR
