@@ -60,9 +60,14 @@ The architecture supports the following platforms:
 - ✅ **Linux** - Desktop application (OpenGL)
 
 ### Planned Platform Support
-- 🔲 **iOS** - Mobile application
-- 🔲 **Android** - Mobile application
-- 🔲 **WebAssembly** - Browser-based application
+- 🔲 **iOS** - Mobile application (requires iOS workload)
+- 🔲 **Android** - Mobile application (requires Android workload)
+- 🔲 **WebAssembly** - Browser-based application (requires wasm-tools workload)
+
+**Note:** Cross-platform projects (iOS, Android, Web) are scaffolded but require additional .NET workloads to build. Install them with:
+```bash
+dotnet workload install android ios wasm-tools
+```
 
 ## Getting Started
 

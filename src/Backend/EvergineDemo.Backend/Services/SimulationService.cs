@@ -16,12 +16,15 @@ public class SimulationService : IHostedService, IDisposable
     private Timer? _updateTimer;
     private readonly RoomState _roomState;
     private readonly object _stateLock = new();
+    private DateTime _lastBroadcastTime = DateTime.MinValue;
     
     // Physics constants
     private const float Gravity = -9.81f; // m/s^2
     private const float AngularVelocity = MathF.PI / 5f; // 1 rotation per 10 seconds (2π/10 = π/5)
     private const float UpdateFrequency = 60f; // 60 Hz
     private const float DeltaTime = 1f / UpdateFrequency;
+    private const float BroadcastFrequency = 6f; // Broadcast updates 6 times per second
+    private const double BroadcastInterval = 1.0 / BroadcastFrequency; // ~166ms
 
     public SimulationService(
         IHubContext<SimulationHub, ISimulationHub> hubContext,
@@ -181,9 +184,11 @@ public class SimulationService : IHostedService, IDisposable
             }
         }
 
-        // Broadcast updates to all connected clients (throttled to every 10 updates)
-        if (DateTime.UtcNow.Millisecond % 166 < 17) // Approximately 6 times per second
+        // Broadcast updates to all connected clients (throttled based on time)
+        var now = DateTime.UtcNow;
+        if ((now - _lastBroadcastTime).TotalSeconds >= BroadcastInterval)
         {
+            _lastBroadcastTime = now;
             _ = BroadcastRoomStateAsync();
         }
     }
