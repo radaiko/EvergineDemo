@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using EvergineDemo.Shared.Models;
 using EvergineDemo.Backend.Services;
+using EvergineDemo.Shared.Services;
 
 namespace EvergineDemo.Backend.Controllers;
 
@@ -9,11 +10,13 @@ namespace EvergineDemo.Backend.Controllers;
 public class ModelController : ControllerBase
 {
     private readonly SimulationService _simulationService;
+    private readonly StlParserService _stlParser;
     private readonly ILogger<ModelController> _logger;
 
-    public ModelController(SimulationService simulationService, ILogger<ModelController> logger)
+    public ModelController(SimulationService simulationService, StlParserService stlParser, ILogger<ModelController> logger)
     {
         _simulationService = simulationService;
+        _stlParser = stlParser;
         _logger = logger;
     }
 
@@ -41,14 +44,24 @@ public class ModelController : ControllerBase
             _logger.LogInformation("Received STL file: {FileName}, Size: {Size} bytes", 
                 request.FileName, fileBytes.Length);
 
+            // Parse STL file
+            var stlMesh = _stlParser.Parse(fileBytes, request.FileName);
+            _logger.LogInformation("Parsed STL file: {MeshName}, Triangles: {TriangleCount}", 
+                stlMesh.Name, stlMesh.Triangles.Count);
+
             // Add model to simulation
-            var model = await _simulationService.AddModelAsync(request.FileName);
+            var model = await _simulationService.AddModelAsync(request.FileName, stlMesh);
 
             return Ok(model);
         }
         catch (FormatException)
         {
             return BadRequest("Invalid file content format");
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Invalid STL file: {FileName}", request.FileName);
+            return BadRequest($"Invalid STL file: {ex.Message}");
         }
         catch (Exception ex)
         {

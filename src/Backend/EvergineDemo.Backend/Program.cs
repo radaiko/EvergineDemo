@@ -1,5 +1,6 @@
 using EvergineDemo.Backend.Hubs;
 using EvergineDemo.Backend.Services;
+using EvergineDemo.Shared.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +20,9 @@ builder.Services.AddSignalR();
 // Add simulation service as hosted service
 builder.Services.AddSingleton<SimulationService>();
 builder.Services.AddHostedService(provider => provider.GetRequiredService<SimulationService>());
+
+// Add STL parser service
+builder.Services.AddSingleton<StlParserService>();
 
 // Add CORS for cross-origin requests
 builder.Services.AddCors(options =>

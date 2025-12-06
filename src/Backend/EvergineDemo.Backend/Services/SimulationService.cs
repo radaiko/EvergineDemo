@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 using EvergineDemo.Shared.Models;
+using EvergineDemo.Shared.Models.Stl;
 using EvergineDemo.Shared.Hubs;
 using EvergineDemo.Backend.Hubs;
 using Evergine.Mathematics;
@@ -89,7 +90,9 @@ public class SimulationService : IHostedService, IDisposable
     /// <summary>
     /// Add a new model to the simulation
     /// </summary>
-    public async Task<ModelState> AddModelAsync(string fileName)
+    /// <param name="fileName">Name of the STL file</param>
+    /// <param name="stlMesh">Optional parsed STL mesh data</param>
+    public async Task<ModelState> AddModelAsync(string fileName, StlMesh? stlMesh = null)
     {
         var model = new ModelState
         {
@@ -109,7 +112,15 @@ public class SimulationService : IHostedService, IDisposable
             _roomState.LastUpdate = DateTime.UtcNow;
         }
 
-        _logger.LogInformation("Added new model: {ModelId} - {FileName}", model.Id, fileName);
+        if (stlMesh != null)
+        {
+            _logger.LogInformation("Added new model: {ModelId} - {FileName} with {TriangleCount} triangles", 
+                model.Id, fileName, stlMesh.Triangles.Count);
+        }
+        else
+        {
+            _logger.LogInformation("Added new model: {ModelId} - {FileName}", model.Id, fileName);
+        }
         
         // Notify all clients
         await _hubContext.Clients.All.ModelAdded(model);
