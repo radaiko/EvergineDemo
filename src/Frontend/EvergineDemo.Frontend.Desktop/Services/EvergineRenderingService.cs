@@ -1,3 +1,4 @@
+using Evergine.Common.Graphics;
 using Evergine.Mathematics;
 using EvergineDemo.Shared.Models;
 using System;
@@ -19,6 +20,9 @@ public class EvergineRenderingService : IDisposable
     private bool _initialized = false;
     private int _width;
     private int _height;
+    
+    // Scene configuration
+    private readonly SceneConfiguration _sceneConfig = new();
     
     // Scene state
     private readonly Dictionary<string, ModelSceneObject> _sceneModels = new();
@@ -153,6 +157,14 @@ public class EvergineRenderingService : IDisposable
     }
 
     /// <summary>
+    /// Get scene configuration for rendering
+    /// </summary>
+    public SceneConfiguration GetSceneConfiguration()
+    {
+        return _sceneConfig;
+    }
+
+    /// <summary>
     /// Clean up resources
     /// </summary>
     public void Dispose()
@@ -162,6 +174,55 @@ public class EvergineRenderingService : IDisposable
             _initialized = false;
             Console.WriteLine("EvergineRenderingService disposed");
         }
+    }
+}
+
+/// <summary>
+/// Configuration for the 3D scene including camera, lighting, and environment
+/// </summary>
+public class SceneConfiguration
+{
+    // Room dimensions (matching backend)
+    public Vector3 RoomSize { get; init; } = new Vector3(10f, 10f, 10f);
+    public float FloorY { get; init; } = 0f;
+    
+    // Camera configuration
+    public CameraConfig Camera { get; init; } = new CameraConfig();
+    
+    // Lighting configuration
+    public DirectionalLightConfig DirectionalLight { get; init; } = new DirectionalLightConfig();
+    public PointLightConfig AmbientLight { get; init; } = new PointLightConfig();
+    
+    public class CameraConfig
+    {
+        public Vector3 Position { get; init; } = new Vector3(15f, 8f, 15f);
+        public Quaternion Orientation { get; init; } = Quaternion.CreateFromYawPitchRoll(
+            MathHelper.ToRadians(-45f), // Yaw: look toward center
+            MathHelper.ToRadians(-30f), // Pitch: look down  
+            0f);
+        public float FieldOfView { get; init; } = MathHelper.ToRadians(45f);
+        public float NearPlane { get; init; } = 0.1f;
+        public float FarPlane { get; init; } = 1000f;
+        public Color BackgroundColor { get; init; } = new Color(0.12f, 0.12f, 0.15f);
+    }
+    
+    public class DirectionalLightConfig
+    {
+        public Vector3 Position { get; init; } = new Vector3(5f, 10f, 5f);
+        public Quaternion Orientation { get; init; } = Quaternion.CreateFromYawPitchRoll(
+            MathHelper.ToRadians(45f),
+            MathHelper.ToRadians(-60f),
+            0f);
+        public Color Color { get; init; } = Color.White;
+        public float Intensity { get; init; } = 1.5f;
+    }
+    
+    public class PointLightConfig
+    {
+        public Vector3 Position { get; init; } = new Vector3(0f, 8f, 0f);
+        public Color Color { get; init; } = new Color(0.3f, 0.3f, 0.35f);
+        public float Intensity { get; init; } = 0.4f;
+        public float LightRange { get; init; } = 50f;
     }
 }
 
