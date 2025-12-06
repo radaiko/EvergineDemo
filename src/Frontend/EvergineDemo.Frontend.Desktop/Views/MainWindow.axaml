@@ -28,7 +28,9 @@
                          IsEnabled="{Binding !IsConnected}"
                          Width="250"
                          Watermark="http://localhost:5000"
-                         VerticalAlignment="Center"/>
+                         VerticalAlignment="Center"
+                         Name="ServerUrlTextBox"
+                         AutomationProperties.Name="Server URL"/>
                 <Button Command="{Binding ConnectToServerCommand}"
                         IsEnabled="{Binding !IsConnected}"
                         Content="Connect"

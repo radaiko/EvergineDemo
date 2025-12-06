@@ -85,6 +85,14 @@ public partial class MainWindowViewModel : ViewModelBase
             // Ensure URL doesn't end with a slash
             var cleanUrl = ServerUrl.TrimEnd('/');
 
+            // Validate URL format
+            if (!Uri.TryCreate(cleanUrl, UriKind.Absolute, out var uri) || 
+                (uri.Scheme != "http" && uri.Scheme != "https"))
+            {
+                StatusText = "Please enter a valid HTTP or HTTPS URL";
+                return;
+            }
+
             StatusText = $"Connecting to {cleanUrl}...";
 
             _hubConnection = new HubConnectionBuilder()
