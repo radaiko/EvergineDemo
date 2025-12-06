@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.AspNetCore.SignalR.Client;
 using EvergineDemo.Shared.Models;
+using EvergineDemo.Frontend.Desktop.Services;
 using System;
 using System.IO;
 using System.Linq;
@@ -28,10 +29,19 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private HubConnection? _hubConnection;
     private IStorageProvider? _storageProvider;
+    private EvergineRenderingService? _renderingService;
 
     public MainWindowViewModel()
     {
         // Don't auto-connect anymore, let user configure server URL first
+    }
+
+    /// <summary>
+    /// Set the rendering service for 3D visualization
+    /// </summary>
+    public void SetRenderingService(EvergineRenderingService renderingService)
+    {
+        _renderingService = renderingService;
     }
 
     /// <summary>
@@ -166,12 +176,19 @@ public partial class MainWindowViewModel : ViewModelBase
                 {
                     Models.Add(model);
                 }
+                
+                // Update the 3D scene
+                _renderingService?.UpdateScene(roomState);
             });
 
             _hubConnection.On<ModelState>("ModelAdded", (model) =>
             {
                 Models.Add(model);
                 StatusText = $"New model added: {model.FileName}";
+                
+                // Update the 3D scene with current state
+                var roomState = new RoomState { Models = Models.ToList() };
+                _renderingService?.UpdateScene(roomState);
             });
 
             _hubConnection.On<string>("ModelRemoved", (modelId) =>

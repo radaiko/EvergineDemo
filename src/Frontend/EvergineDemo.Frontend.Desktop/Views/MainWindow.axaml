@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:EvergineDemo.Frontend.Desktop.ViewModels"
+        xmlns:controls="using:EvergineDemo.Frontend.Desktop.Controls"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="768"
@@ -48,16 +49,8 @@
 
         <!-- Main 3D viewport -->
         <Border Grid.Row="1" Background="#1e1e1e">
-            <Grid>
-                <!-- Placeholder for Evergine 3D surface -->
-                <Border Name="EvergineContainer" Background="#1e1e1e">
-                    <TextBlock Text="Evergine 3D Viewport" 
-                               HorizontalAlignment="Center" 
-                               VerticalAlignment="Center"
-                               FontSize="24"
-                               Foreground="#808080"/>
-                </Border>
-            </Grid>
+            <!-- Evergine 3D rendering surface -->
+            <controls:EvergineControl Name="EvergineViewport" />
         </Border>
 
         <!-- Bottom status bar -->
