@@ -13,6 +13,7 @@ public class EvergineControl : OpenGlControlBase
 {
     private EvergineRenderingService? _renderingService;
     private bool _initialized = false;
+    private bool _firstRender = true;
     private float _rotation = 0f;
 
     public EvergineControl()
@@ -105,8 +106,9 @@ public class EvergineControl : OpenGlControlBase
             var models = _renderingService.GetSceneModels();
             
             // Log scene information (floor, lights, camera) on first render
-            if (_rotation == 0f)
+            if (_firstRender)
             {
+                _firstRender = false;
                 Console.WriteLine($"Scene Configuration:");
                 Console.WriteLine($"  Floor: {sceneConfig.RoomSize.X}x{sceneConfig.RoomSize.Z} at Y={sceneConfig.FloorY}");
                 Console.WriteLine($"  Camera: Position={sceneConfig.Camera.Position}, FOV={sceneConfig.Camera.FieldOfView}");

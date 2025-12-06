@@ -18,7 +18,9 @@ public class SceneSetupService
     private Entity? _directionalLightEntity;
     private Entity? _ambientLightEntity;
     private Entity? _floorEntity;
-    private readonly Vector3 _roomSize = new Vector3(10f, 10f, 10f);
+    
+    // Room dimensions from configuration
+    private Vector3 RoomSize => new Vector3(10f, 10f, 10f);
     
     // Camera settings
     private const float CameraDistance = 15f;
@@ -126,7 +128,7 @@ public class SceneSetupService
             .AddComponent(new Transform3D
             {
                 LocalPosition = new Vector3(0f, 0f, 0f),
-                LocalScale = new Vector3(_roomSize.X, 1f, _roomSize.Z)
+                LocalScale = new Vector3(RoomSize.X, 1f, RoomSize.Z)
             })
             .AddComponent(new MaterialComponent())
             .AddComponent(new PlaneMesh
@@ -138,16 +140,11 @@ public class SceneSetupService
             })
             .AddComponent(new MeshRenderer());
         
-        // Set floor material to a simple gray color
-        var floorMaterial = _floorEntity.FindComponent<MaterialComponent>();
-        if (floorMaterial?.Material != null)
-        {
-            // Configure material properties for a simple gray floor
-            // In a full implementation, this would use a StandardMaterial with proper PBR properties
-        }
-        
         _scene.Managers.EntityManager.Add(_floorEntity);
-        Console.WriteLine($"Floor created at Y=0 with size: {_roomSize.X}x{_roomSize.Z}");
+        
+        // Note: Material configuration for gray floor would be done here
+        // In a full implementation, this would use a StandardMaterial with proper PBR properties
+        Console.WriteLine($"Floor created at Y=0 with size: {RoomSize.X}x{RoomSize.Z}");
     }
     
     /// <summary>
@@ -161,29 +158,29 @@ public class SceneSetupService
         // For now, we'll create thin wall planes at the room boundaries
         
         float wallThickness = 0.1f;
-        float wallHeight = _roomSize.Y;
+        float wallHeight = RoomSize.Y;
         
         // Back wall (-Z)
         CreateWall("BackWall", 
-            new Vector3(0f, wallHeight / 2f, -_roomSize.Z / 2f),
-            new Vector3(_roomSize.X, wallHeight, wallThickness));
+            new Vector3(0f, wallHeight / 2f, -RoomSize.Z / 2f),
+            new Vector3(RoomSize.X, wallHeight, wallThickness));
         
         // Front wall (+Z)
         CreateWall("FrontWall", 
-            new Vector3(0f, wallHeight / 2f, _roomSize.Z / 2f),
-            new Vector3(_roomSize.X, wallHeight, wallThickness));
+            new Vector3(0f, wallHeight / 2f, RoomSize.Z / 2f),
+            new Vector3(RoomSize.X, wallHeight, wallThickness));
         
         // Left wall (-X)
         CreateWall("LeftWall", 
-            new Vector3(-_roomSize.X / 2f, wallHeight / 2f, 0f),
-            new Vector3(wallThickness, wallHeight, _roomSize.Z));
+            new Vector3(-RoomSize.X / 2f, wallHeight / 2f, 0f),
+            new Vector3(wallThickness, wallHeight, RoomSize.Z));
         
         // Right wall (+X)
         CreateWall("RightWall", 
-            new Vector3(_roomSize.X / 2f, wallHeight / 2f, 0f),
-            new Vector3(wallThickness, wallHeight, _roomSize.Z));
+            new Vector3(RoomSize.X / 2f, wallHeight / 2f, 0f),
+            new Vector3(wallThickness, wallHeight, RoomSize.Z));
         
-        Console.WriteLine($"Room boundaries created: {_roomSize.X}x{_roomSize.Y}x{_roomSize.Z}");
+        Console.WriteLine($"Room boundaries created: {RoomSize.X}x{RoomSize.Y}x{RoomSize.Z}");
     }
     
     /// <summary>
