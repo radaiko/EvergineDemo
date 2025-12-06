@@ -20,13 +20,22 @@
         <!-- Top toolbar -->
         <Border Grid.Row="0" Background="#2d2d30" Padding="10">
             <StackPanel Orientation="Horizontal" Spacing="10">
+                <TextBlock Text="Server URL:" 
+                           VerticalAlignment="Center"
+                           Foreground="White"
+                           Margin="0,0,5,0"/>
+                <TextBox Text="{Binding ServerUrl}" 
+                         IsEnabled="{Binding !IsConnected}"
+                         Width="250"
+                         Watermark="http://localhost:5000"
+                         VerticalAlignment="Center"/>
+                <Button Command="{Binding ConnectToServerCommand}"
+                        IsEnabled="{Binding !IsConnected}"
+                        Content="Connect"
+                        Padding="15,8"/>
                 <Button Command="{Binding LoadStlCommand}" 
                         IsEnabled="{Binding IsConnected}"
                         Content="Load STL Model"
-                        Padding="15,8"/>
-                <Button Command="{Binding ConnectToServerCommand}"
-                        IsEnabled="{Binding !IsConnected}"
-                        Content="Connect to Server"
                         Padding="15,8"/>
                 <TextBlock Text="{Binding StatusText}" 
                            VerticalAlignment="Center"

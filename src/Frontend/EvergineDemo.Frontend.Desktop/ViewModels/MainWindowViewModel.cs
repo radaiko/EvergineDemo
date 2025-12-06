@@ -20,14 +20,16 @@ public partial class MainWindowViewModel : ViewModelBase
     private bool _isConnected = false;
 
     [ObservableProperty]
+    private string _serverUrl = "http://localhost:5000";
+
+    [ObservableProperty]
     private ObservableCollection<ModelState> _models = new();
 
     private HubConnection? _hubConnection;
-    private const string ServerUrl = "http://localhost:5000";
 
     public MainWindowViewModel()
     {
-        _ = ConnectToServerAsync();
+        // Don't auto-connect anymore, let user configure server URL first
     }
 
     [RelayCommand]
@@ -73,10 +75,20 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         try
         {
-            StatusText = "Connecting to server...";
+            // Validate server URL
+            if (string.IsNullOrWhiteSpace(ServerUrl))
+            {
+                StatusText = "Please enter a server URL";
+                return;
+            }
+
+            // Ensure URL doesn't end with a slash
+            var cleanUrl = ServerUrl.TrimEnd('/');
+
+            StatusText = $"Connecting to {cleanUrl}...";
 
             _hubConnection = new HubConnectionBuilder()
-                .WithUrl($"{ServerUrl}/simulationHub")
+                .WithUrl($"{cleanUrl}/simulationHub")
                 .WithAutomaticReconnect()
                 .Build();
 
