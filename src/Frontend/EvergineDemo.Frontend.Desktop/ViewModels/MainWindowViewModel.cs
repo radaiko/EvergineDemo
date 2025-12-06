@@ -59,7 +59,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 new("STL Files")
                 {
                     Patterns = new[] { "*.stl", "*.STL" },
-                    MimeTypes = new[] { "application/vnd.ms-pki.stl", "model/stl" }
+                    MimeTypes = new[] { "model/stl", "application/sla" }
                 },
                 new("All Files")
                 {
@@ -87,6 +87,15 @@ public partial class MainWindowViewModel : ViewModelBase
 
             // Read file content
             await using var stream = await file.OpenReadAsync();
+            
+            // Check file size (limit to 100MB for safety)
+            const long maxFileSize = 100 * 1024 * 1024; // 100 MB
+            if (stream.Length > maxFileSize)
+            {
+                StatusText = $"File too large. Maximum size is 100MB.";
+                return;
+            }
+
             using var memoryStream = new MemoryStream();
             await stream.CopyToAsync(memoryStream);
             var fileBytes = memoryStream.ToArray();
