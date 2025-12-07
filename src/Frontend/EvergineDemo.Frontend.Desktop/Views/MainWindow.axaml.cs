@@ -9,6 +9,7 @@ namespace EvergineDemo.Frontend.Desktop.Views;
 public partial class MainWindow : Window
 {
     private EvergineRenderingService? _renderingService;
+    private ModelRenderingService? _modelRenderingService;
 
     public MainWindow()
     {
@@ -25,11 +26,16 @@ public partial class MainWindow : Window
                 _renderingService = new EvergineRenderingService();
                 viewModel.SetRenderingService(_renderingService);
                 
-                // Connect the rendering service to the Evergine control
+                // Initialize model rendering service
+                _modelRenderingService = new ModelRenderingService();
+                viewModel.SetModelRenderingService(_modelRenderingService);
+                
+                // Connect the rendering services to the Evergine control
                 var evergineControl = this.FindControl<EvergineControl>("EvergineViewport");
                 if (evergineControl != null)
                 {
                     evergineControl.SetRenderingService(_renderingService);
+                    evergineControl.SetModelRenderingService(_modelRenderingService);
                 }
             }
         };
@@ -38,12 +44,14 @@ public partial class MainWindow : Window
         Closing += async (s, e) =>
         {
             _renderingService?.Dispose();
+            _modelRenderingService = null; // ModelRenderingService doesn't need disposal, just null reference
             
             if (DataContext is MainWindowViewModel viewModel)
             {
                 try
                 {
                     await viewModel.DisconnectAsync();
+                    viewModel.Dispose(); // Dispose the ViewModel to clean up HttpClient
                 }
                 catch (Exception ex)
                 {

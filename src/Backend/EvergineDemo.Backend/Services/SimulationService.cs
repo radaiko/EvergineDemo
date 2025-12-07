@@ -17,6 +17,7 @@ public class SimulationService : IHostedService, IDisposable
     private Timer? _updateTimer;
     private readonly RoomState _roomState;
     private readonly object _stateLock = new();
+    private readonly Dictionary<string, StlMesh> _modelMeshes = new();
     private DateTime _lastBroadcastTime = DateTime.MinValue;
     
     // Physics constants
@@ -110,6 +111,12 @@ public class SimulationService : IHostedService, IDisposable
         {
             _roomState.Models.Add(model);
             _roomState.LastUpdate = DateTime.UtcNow;
+            
+            // Store STL mesh data if provided
+            if (stlMesh != null)
+            {
+                _modelMeshes[model.Id] = stlMesh;
+            }
         }
 
         if (stlMesh != null)
@@ -142,6 +149,38 @@ public class SimulationService : IHostedService, IDisposable
                 model.LastUpdate = DateTime.UtcNow;
                 _logger.LogInformation("Model dropped: {ModelId}", modelId);
             }
+        }
+    }
+
+    /// <summary>
+    /// Remove a model from the simulation
+    /// </summary>
+    public async Task RemoveModelAsync(string modelId)
+    {
+        lock (_stateLock)
+        {
+            var model = _roomState.Models.FirstOrDefault(m => m.Id == modelId);
+            if (model != null)
+            {
+                _roomState.Models.Remove(model);
+                _modelMeshes.Remove(modelId); // Clean up mesh data to prevent memory leak
+                _roomState.LastUpdate = DateTime.UtcNow;
+                _logger.LogInformation("Removed model: {ModelId}", modelId);
+            }
+        }
+
+        // Notify all clients
+        await _hubContext.Clients.All.ModelRemoved(modelId);
+    }
+
+    /// <summary>
+    /// Get the STL mesh data for a given model ID
+    /// </summary>
+    public StlMesh? GetModelMesh(string modelId)
+    {
+        lock (_stateLock)
+        {
+            return _modelMeshes.TryGetValue(modelId, out var mesh) ? mesh : null;
         }
     }
 

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using EvergineDemo.Shared.Models;
+using EvergineDemo.Shared.Models.Stl;
 using EvergineDemo.Backend.Services;
 using EvergineDemo.Shared.Services;
 
@@ -77,5 +78,20 @@ public class ModelController : ControllerBase
     public ActionResult<RoomState> GetState()
     {
         return Ok(_simulationService.GetRoomState());
+    }
+
+    /// <summary>
+    /// Get the STL mesh data for a specific model
+    /// </summary>
+    [HttpGet("{modelId}/mesh")]
+    public ActionResult<StlMesh> GetModelMesh(string modelId)
+    {
+        var mesh = _simulationService.GetModelMesh(modelId);
+        if (mesh == null)
+        {
+            return NotFound($"Model with ID '{modelId}' not found or has no mesh data");
+        }
+
+        return Ok(mesh);
     }
 }

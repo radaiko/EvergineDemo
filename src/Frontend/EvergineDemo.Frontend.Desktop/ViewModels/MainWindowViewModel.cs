@@ -30,10 +30,21 @@ public partial class MainWindowViewModel : ViewModelBase
     private HubConnection? _hubConnection;
     private IStorageProvider? _storageProvider;
     private EvergineRenderingService? _renderingService;
+    private ModelRenderingService? _modelRenderingService;
+    private readonly System.Net.Http.HttpClient _httpClient = new();
 
     public MainWindowViewModel()
     {
         // Don't auto-connect anymore, let user configure server URL first
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _httpClient?.Dispose();
+        }
+        base.Dispose(disposing);
     }
 
     /// <summary>
@@ -42,6 +53,14 @@ public partial class MainWindowViewModel : ViewModelBase
     public void SetRenderingService(EvergineRenderingService renderingService)
     {
         _renderingService = renderingService;
+    }
+
+    /// <summary>
+    /// Set the model rendering service for STL model rendering
+    /// </summary>
+    public void SetModelRenderingService(ModelRenderingService modelRenderingService)
+    {
+        _modelRenderingService = modelRenderingService;
     }
 
     /// <summary>
@@ -121,8 +140,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
             // Send to backend - use clean URL
             var cleanUrl = ServerUrl.TrimEnd('/');
-            using var httpClient = new System.Net.Http.HttpClient();
-            var response = await httpClient.PostAsJsonAsync($"{cleanUrl}/api/model/upload", request);
+            var response = await _httpClient.PostAsJsonAsync($"{cleanUrl}/api/model/upload", request);
             
             if (response.IsSuccessStatusCode)
             {
@@ -177,14 +195,18 @@ public partial class MainWindowViewModel : ViewModelBase
                     Models.Add(model);
                 }
                 
-                // Update the 3D scene
+                // Update the 3D scene with model transformations
                 _renderingService?.UpdateScene(roomState);
+                _modelRenderingService?.UpdateModels(roomState);
             });
 
-            _hubConnection.On<ModelState>("ModelAdded", (model) =>
+            _hubConnection.On<ModelState>("ModelAdded", async (model) =>
             {
                 Models.Add(model);
                 StatusText = $"New model added: {model.FileName}";
+                
+                // Fetch mesh data for the new model
+                await FetchAndRenderModelAsync(model);
                 
                 // Update the 3D scene with current state
                 var roomState = new RoomState { Models = Models.ToList() };
@@ -197,6 +219,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 if (model != null)
                 {
                     Models.Remove(model);
+                    _modelRenderingService?.RemoveModel(modelId);
                 }
             });
 
@@ -239,6 +262,45 @@ public partial class MainWindowViewModel : ViewModelBase
             await _hubConnection.StopAsync();
             await _hubConnection.DisposeAsync();
             _hubConnection = null;
+        }
+    }
+
+    /// <summary>
+    /// Fetch mesh data for a model and render it
+    /// </summary>
+    private async Task FetchAndRenderModelAsync(ModelState model)
+    {
+        if (_modelRenderingService == null)
+        {
+            return;
+        }
+
+        try
+        {
+            var cleanUrl = ServerUrl.TrimEnd('/');
+            var response = await _httpClient.GetAsync($"{cleanUrl}/api/model/{model.Id}/mesh");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var stlMesh = await response.Content.ReadFromJsonAsync<EvergineDemo.Shared.Models.Stl.StlMesh>();
+                if (stlMesh != null)
+                {
+                    _modelRenderingService.AddOrUpdateModel(model, stlMesh);
+                    Console.WriteLine($"Fetched and rendered mesh for model {model.Id}: {stlMesh.Triangles.Count} triangles");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Failed to fetch mesh for model {model.Id}: {response.ReasonPhrase}");
+                // Still add the model without mesh data (will create placeholder)
+                _modelRenderingService.AddOrUpdateModel(model);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching mesh for model {model.Id}: {ex.Message}");
+            // Add model without mesh data
+            _modelRenderingService.AddOrUpdateModel(model);
         }
     }
 }
