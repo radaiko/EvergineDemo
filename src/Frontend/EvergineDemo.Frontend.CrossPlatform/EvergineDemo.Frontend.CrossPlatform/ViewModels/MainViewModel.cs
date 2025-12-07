@@ -36,6 +36,10 @@ public partial class MainViewModel : ViewModelBase
     {
         if (disposing)
         {
+            // Disconnect from SignalR hub (fire and forget to avoid blocking)
+            _ = DisconnectAsync();
+            
+            // Dispose HTTP client
             _httpClient?.Dispose();
         }
         base.Dispose(disposing);
