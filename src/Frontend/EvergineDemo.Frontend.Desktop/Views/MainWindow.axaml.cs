@@ -44,12 +44,14 @@ public partial class MainWindow : Window
         Closing += async (s, e) =>
         {
             _renderingService?.Dispose();
+            _modelRenderingService = null; // ModelRenderingService doesn't need disposal, just null reference
             
             if (DataContext is MainWindowViewModel viewModel)
             {
                 try
                 {
                     await viewModel.DisconnectAsync();
+                    viewModel.Dispose(); // Dispose the ViewModel to clean up HttpClient
                 }
                 catch (Exception ex)
                 {

@@ -38,6 +38,15 @@ public partial class MainWindowViewModel : ViewModelBase
         // Don't auto-connect anymore, let user configure server URL first
     }
 
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _httpClient?.Dispose();
+        }
+        base.Dispose(disposing);
+    }
+
     /// <summary>
     /// Set the rendering service for 3D visualization
     /// </summary>
