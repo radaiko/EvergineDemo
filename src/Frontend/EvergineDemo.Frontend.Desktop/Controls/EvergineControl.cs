@@ -237,6 +237,10 @@ public class EvergineControl : OpenGlControlBase
             Console.WriteLine($"[EvergineControl] OnOpenGlRender called (frame {_frameCount}), initialized={_initialized}, bounds={Bounds.Width}x{Bounds.Height}");
         }
         
+        // Bind the framebuffer provided by Avalonia (critical for macOS)
+        const int GL_FRAMEBUFFER = 0x8D40;
+        gl.BindFramebuffer(GL_FRAMEBUFFER, fb);
+        
         if (!_initialized || _renderingService == null)
         {
             // Clear to grey background if not initialized (matching the desired background color)
