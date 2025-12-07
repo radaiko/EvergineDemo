@@ -3,14 +3,79 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:EvergineDemo.Frontend.CrossPlatform.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="768"
              x:Class="EvergineDemo.Frontend.CrossPlatform.Views.MainView"
              x:DataType="vm:MainViewModel">
   <Design.DataContext>
-    <!-- This only sets the DataContext for the previewer in an IDE,
-         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
     <vm:MainViewModel />
   </Design.DataContext>
 
-  <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+  <Grid RowDefinitions="Auto,*,Auto">
+    <!-- Top toolbar -->
+    <Border Grid.Row="0" Background="#2d2d30" Padding="10">
+      <StackPanel Orientation="Horizontal" Spacing="10">
+        <TextBlock Text="Server URL:" 
+                   VerticalAlignment="Center"
+                   Foreground="White"
+                   Margin="0,0,5,0"/>
+        <TextBox Text="{Binding ServerUrl}" 
+                 IsEnabled="{Binding !IsConnected}"
+                 Width="250"
+                 Watermark="http://localhost:5000"
+                 VerticalAlignment="Center"
+                 Name="ServerUrlTextBox"/>
+        <Button Command="{Binding ConnectToServerCommand}"
+                IsEnabled="{Binding !IsConnected}"
+                Content="Connect"
+                Padding="15,8"/>
+        <Button Command="{Binding LoadStlCommand}" 
+                IsEnabled="{Binding IsConnected}"
+                Content="Load STL Model"
+                Padding="15,8"/>
+        <TextBlock Text="{Binding StatusText}" 
+                   VerticalAlignment="Center"
+                   Foreground="White"
+                   Margin="20,0,0,0"/>
+      </StackPanel>
+    </Border>
+
+    <!-- Main 3D viewport placeholder -->
+    <Border Grid.Row="1" Background="#1e1e1e">
+      <Grid>
+        <!-- Placeholder for 3D rendering -->
+        <Border Background="#505050" CornerRadius="8" Margin="20">
+          <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10">
+            <TextBlock Text="Evergine 3D Viewport" 
+                       FontSize="24" 
+                       Foreground="White"
+                       HorizontalAlignment="Center"/>
+            <TextBlock Text="3D model rendering will appear here" 
+                       FontSize="14" 
+                       Foreground="#CCCCCC"
+                       HorizontalAlignment="Center"/>
+            <TextBlock Text="{Binding Models.Count, StringFormat='Models in scene: {0}'}"
+                       FontSize="14"
+                       Foreground="#CCCCCC"
+                       HorizontalAlignment="Center"
+                       Margin="0,10,0,0"/>
+          </StackPanel>
+        </Border>
+      </Grid>
+    </Border>
+
+    <!-- Bottom status bar -->
+    <Border Grid.Row="2" Background="#007acc" Padding="10">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Grid.Column="0" 
+                   Text="{Binding Models.Count, StringFormat='Models in scene: {0}'}"
+                   Foreground="White"
+                   VerticalAlignment="Center"/>
+        <TextBlock Grid.Column="1"
+                   Text="Connected clients will see synchronized rendering"
+                   Foreground="White"
+                   VerticalAlignment="Center"
+                   Margin="20,0,0,0"/>
+      </Grid>
+    </Border>
+  </Grid>
 </UserControl>
