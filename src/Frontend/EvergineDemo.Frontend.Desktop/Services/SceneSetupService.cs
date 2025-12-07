@@ -18,6 +18,7 @@ public class SceneSetupService
     private Entity? _directionalLightEntity;
     private Entity? _ambientLightEntity;
     private Entity? _floorEntity;
+    private ModelRenderingService? _modelRenderingService;
     
     // Room dimensions from configuration
     private Vector3 RoomSize => new Vector3(10f, 10f, 10f);
@@ -30,9 +31,10 @@ public class SceneSetupService
     /// <summary>
     /// Initialize and configure the 3D scene
     /// </summary>
-    public void SetupScene(Scene scene)
+    public void SetupScene(Scene scene, ModelRenderingService? modelRenderingService = null)
     {
         _scene = scene ?? throw new ArgumentNullException(nameof(scene));
+        _modelRenderingService = modelRenderingService;
         
         // Set up all scene components
         SetupCamera();

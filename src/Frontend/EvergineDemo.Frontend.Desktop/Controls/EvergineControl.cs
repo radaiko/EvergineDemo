@@ -12,6 +12,7 @@ namespace EvergineDemo.Frontend.Desktop.Controls;
 public class EvergineControl : OpenGlControlBase
 {
     private EvergineRenderingService? _renderingService;
+    private ModelRenderingService? _modelRenderingService;
     private bool _initialized = false;
     private bool _firstRender = true;
     private float _rotation = 0f;
@@ -37,6 +38,14 @@ public class EvergineControl : OpenGlControlBase
     public void SetRenderingService(EvergineRenderingService service)
     {
         _renderingService = service;
+    }
+
+    /// <summary>
+    /// Set the model rendering service that manages STL model data
+    /// </summary>
+    public void SetModelRenderingService(ModelRenderingService service)
+    {
+        _modelRenderingService = service;
     }
 
     /// <summary>
@@ -119,10 +128,22 @@ public class EvergineControl : OpenGlControlBase
             // Render simple grid visualization (floor at Y=0)
             RenderSceneVisualization(gl, sceneConfig);
             
-            // Render simple cubes for each model in the scene
-            foreach (var model in models)
+            // Render models from the model rendering service
+            if (_modelRenderingService != null)
             {
-                RenderModelPlaceholder(gl, model);
+                var modelRenderData = _modelRenderingService.GetModelRenderData();
+                foreach (var modelData in modelRenderData)
+                {
+                    RenderModel(gl, modelData);
+                }
+            }
+            else
+            {
+                // Fallback: Render simple cubes for each model in the scene
+                foreach (var model in models)
+                {
+                    RenderModelPlaceholder(gl, model);
+                }
             }
 
             // Trigger service render callback (for future extensions)
@@ -156,6 +177,38 @@ public class EvergineControl : OpenGlControlBase
         //
         // Future work: Implement actual 3D geometry rendering using Evergine's
         // scene graph or custom OpenGL shaders.
+    }
+
+    /// <summary>
+    /// Render a model with its mesh data and transformations
+    /// </summary>
+    private void RenderModel(GlInterface gl, ModelRenderingService.ModelRenderData modelData)
+    {
+        // Note: Full 3D rendering with proper vertex buffers and shaders would be implemented here
+        // For now, this documents that the model data (vertices, normals, indices) is available
+        // and transformations (position, rotation, scale) are being tracked.
+        // 
+        // A complete implementation would:
+        // 1. Create vertex buffer objects (VBOs) from modelData.Vertices
+        // 2. Create element buffer objects (EBOs) from modelData.Indices
+        // 3. Set up vertex shaders with MVP (Model-View-Projection) matrices
+        // 4. Apply modelData.Position, modelData.Rotation, modelData.Scale to model matrix
+        // 5. Set up fragment shaders for lighting using modelData.Normals
+        // 6. Bind textures/materials
+        // 7. Issue draw call: gl.DrawElements()
+        //
+        // Current status: Model data is prepared and transformations are synced from backend
+        
+        if (modelData.HasMeshData)
+        {
+            // Model has mesh data ready for rendering
+            // Vertices: modelData.Vertices (Vector3[])
+            // Normals: modelData.Normals (Vector3[])
+            // Indices: modelData.Indices (uint[])
+            // Position: modelData.Position
+            // Rotation: modelData.Rotation (Quaternion)
+            // Scale: modelData.Scale
+        }
     }
 
     /// <summary>

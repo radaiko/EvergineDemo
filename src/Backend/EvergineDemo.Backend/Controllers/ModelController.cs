@@ -78,4 +78,19 @@ public class ModelController : ControllerBase
     {
         return Ok(_simulationService.GetRoomState());
     }
+
+    /// <summary>
+    /// Get the STL mesh data for a specific model
+    /// </summary>
+    [HttpGet("{modelId}/mesh")]
+    public ActionResult GetModelMesh(string modelId)
+    {
+        var mesh = _simulationService.GetModelMesh(modelId);
+        if (mesh == null)
+        {
+            return NotFound($"Model with ID '{modelId}' not found or has no mesh data");
+        }
+
+        return Ok(mesh);
+    }
 }
