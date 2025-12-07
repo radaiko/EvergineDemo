@@ -10,6 +10,7 @@ public partial class MainWindow : Window
 {
     private EvergineRenderingService? _renderingService;
     private ModelRenderingService? _modelRenderingService;
+    private RaycastService? _raycastService;
 
     public MainWindow()
     {
@@ -30,12 +31,37 @@ public partial class MainWindow : Window
                 _modelRenderingService = new ModelRenderingService();
                 viewModel.SetModelRenderingService(_modelRenderingService);
                 
+                // Initialize raycast service
+                _raycastService = new RaycastService();
+                
                 // Connect the rendering services to the Evergine control
                 var evergineControl = this.FindControl<EvergineControl>("EvergineViewport");
                 if (evergineControl != null)
                 {
                     evergineControl.SetRenderingService(_renderingService);
                     evergineControl.SetModelRenderingService(_modelRenderingService);
+                    evergineControl.SetRaycastService(_raycastService);
+                    
+                    // Wire up model click event
+                    evergineControl.ModelClicked += async (sender, args) =>
+                    {
+                        await viewModel.HandleModelClickAsync(args.ModelId);
+                    };
+                    
+                    // Wire up model hover event for visual feedback
+                    evergineControl.ModelHovered += (sender, args) =>
+                    {
+                        if (args.ModelId != null)
+                        {
+                            viewModel.StatusText = $"Hovering: {args.FileName}";
+                        }
+                        else
+                        {
+                            viewModel.StatusText = viewModel.IsConnected 
+                                ? "Connected to server" 
+                                : "Disconnected";
+                        }
+                    };
                 }
             }
         };

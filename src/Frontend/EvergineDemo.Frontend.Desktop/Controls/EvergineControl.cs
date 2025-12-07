@@ -1,3 +1,4 @@
+using Avalonia.Input;
 using Avalonia.OpenGL;
 using Avalonia.OpenGL.Controls;
 using Avalonia.Threading;
@@ -13,12 +14,27 @@ public class EvergineControl : OpenGlControlBase
 {
     private EvergineRenderingService? _renderingService;
     private ModelRenderingService? _modelRenderingService;
+    private RaycastService? _raycastService;
     private bool _initialized = false;
     private bool _firstRender = true;
     private float _rotation = 0f;
+    private string? _hoveredModelId = null;
+    
+    /// <summary>
+    /// Event raised when a model is clicked
+    /// </summary>
+    public event EventHandler<ModelClickedEventArgs>? ModelClicked;
+    
+    /// <summary>
+    /// Event raised when the hovered model changes
+    /// </summary>
+    public event EventHandler<ModelHoveredEventArgs>? ModelHovered;
 
     public EvergineControl()
     {
+        // Enable pointer events
+        Cursor = new Cursor(StandardCursorType.Hand);
+        
         // Request rendering updates at 60 FPS
         var timer = new DispatcherTimer
         {
@@ -46,6 +62,116 @@ public class EvergineControl : OpenGlControlBase
     public void SetModelRenderingService(ModelRenderingService service)
     {
         _modelRenderingService = service;
+    }
+    
+    /// <summary>
+    /// Set the raycast service for model picking
+    /// </summary>
+    public void SetRaycastService(RaycastService service)
+    {
+        _raycastService = service;
+    }
+    
+    /// <summary>
+    /// Handle pointer moved event for hover detection
+    /// </summary>
+    protected override void OnPointerMoved(PointerEventArgs e)
+    {
+        base.OnPointerMoved(e);
+        
+        if (!_initialized || _raycastService == null || _modelRenderingService == null || _renderingService == null)
+        {
+            return;
+        }
+
+        var point = e.GetPosition(this);
+        PerformRaycast(point.X, point.Y, isClick: false);
+    }
+    
+    /// <summary>
+    /// Handle pointer pressed event for click detection
+    /// </summary>
+    protected override void OnPointerPressed(PointerPressedEventArgs e)
+    {
+        base.OnPointerPressed(e);
+        
+        if (!_initialized || _raycastService == null || _modelRenderingService == null || _renderingService == null)
+        {
+            return;
+        }
+
+        // Only handle left mouse button clicks
+        var point = e.GetCurrentPoint(this);
+        if (point.Properties.IsLeftButtonPressed)
+        {
+            PerformRaycast(point.Position.X, point.Position.Y, isClick: true);
+        }
+    }
+    
+    /// <summary>
+    /// Perform raycast from screen coordinates
+    /// </summary>
+    private void PerformRaycast(double screenX, double screenY, bool isClick)
+    {
+        if (_raycastService == null || _modelRenderingService == null || _renderingService == null)
+        {
+            return;
+        }
+
+        var sceneConfig = _renderingService.GetSceneConfiguration();
+        var models = _modelRenderingService.GetModelRenderData();
+        
+        if (models.Count == 0)
+        {
+            return;
+        }
+
+        // Create ray from screen coordinates
+        var ray = _raycastService.CreateRayFromScreenPoint(
+            (float)screenX, (float)screenY,
+            (float)Bounds.Width, (float)Bounds.Height,
+            sceneConfig.Camera.Position,
+            sceneConfig.Camera.Orientation,
+            sceneConfig.Camera.FieldOfView
+        );
+
+        // Raycast against all models
+        var hits = _raycastService.RaycastModels(ray, models);
+
+        if (isClick)
+        {
+            // Handle click - pick the closest model
+            if (hits.Count > 0)
+            {
+                var closestHit = hits[0];
+                ModelClicked?.Invoke(this, new ModelClickedEventArgs
+                {
+                    ModelId = closestHit.ModelId,
+                    FileName = closestHit.FileName
+                });
+            }
+        }
+        else
+        {
+            // Handle hover - update cursor and raise hover event
+            string? newHoveredModelId = hits.Count > 0 ? hits[0].ModelId : null;
+            
+            if (_hoveredModelId != newHoveredModelId)
+            {
+                _hoveredModelId = newHoveredModelId;
+                
+                ModelHovered?.Invoke(this, new ModelHoveredEventArgs
+                {
+                    ModelId = _hoveredModelId,
+                    FileName = hits.Count > 0 ? hits[0].FileName : null
+                });
+                
+                // Update cursor
+                Cursor = _hoveredModelId != null 
+                    ? new Cursor(StandardCursorType.Hand) 
+                    : new Cursor(StandardCursorType.Arrow);
+            }
+        }
     }
 
     /// <summary>
@@ -265,5 +391,23 @@ public class EvergineControl : OpenGlControlBase
             _renderingService.Resize((int)e.NewSize.Width, (int)e.NewSize.Height);
         }
     }
+}
+
+/// <summary>
+/// Event arguments for model clicked event
+/// </summary>
+public class ModelClickedEventArgs : EventArgs
+{
+    public string ModelId { get; set; } = string.Empty;
+    public string? FileName { get; set; }
+}
+
+/// <summary>
+/// Event arguments for model hovered event
+/// </summary>
+public class ModelHoveredEventArgs : EventArgs
+{
+    public string? ModelId { get; set; }
+    public string? FileName { get; set; }
 }
 

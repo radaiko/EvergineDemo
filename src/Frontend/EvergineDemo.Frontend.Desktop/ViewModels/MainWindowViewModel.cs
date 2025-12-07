@@ -264,6 +264,33 @@ public partial class MainWindowViewModel : ViewModelBase
             _hubConnection = null;
         }
     }
+    
+    /// <summary>
+    /// Handle model click and send to backend
+    /// </summary>
+    public async Task HandleModelClickAsync(string modelId)
+    {
+        if (!IsConnected || _hubConnection == null)
+        {
+            StatusText = "Cannot click model: not connected to server";
+            return;
+        }
+
+        try
+        {
+            await _hubConnection.InvokeAsync("ModelClicked", modelId);
+            
+            var model = Models.FirstOrDefault(m => m.Id == modelId);
+            if (model != null)
+            {
+                StatusText = $"Clicked model: {model.FileName}";
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"Error clicking model: {ex.Message}";
+        }
+    }
 
     /// <summary>
     /// Fetch mesh data for a model and render it
