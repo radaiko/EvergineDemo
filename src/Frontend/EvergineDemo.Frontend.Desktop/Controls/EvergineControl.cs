@@ -198,16 +198,34 @@ public class EvergineControl : OpenGlControlBase
         // 7. Issue draw call: gl.DrawElements()
         //
         // Current status: Model data is prepared and transformations are synced from backend
+        //
+        // RENDERING STATUS:
+        // ✓ STL mesh data parsed and converted to Evergine format
+        // ✓ Vertices, normals, and indices ready for GPU upload
+        // ✓ Position, rotation (spinning), and scale synchronized from backend
+        // ✓ Falling animation state tracked
+        // ✓ Multiple models supported
+        // ✓ Removed models cleaned up
+        // - OpenGL vertex buffers and shaders (requires additional implementation)
         
         if (modelData.HasMeshData)
         {
-            // Model has mesh data ready for rendering
-            // Vertices: modelData.Vertices (Vector3[])
-            // Normals: modelData.Normals (Vector3[])
-            // Indices: modelData.Indices (uint[])
-            // Position: modelData.Position
-            // Rotation: modelData.Rotation (Quaternion)
-            // Scale: modelData.Scale
+            // Model has complete mesh data ready for OpenGL rendering
+            // Geometry: modelData.Vertices (Vector3[]) - vertex positions
+            // Lighting: modelData.Normals (Vector3[]) - per-vertex normals for shading
+            // Indices: modelData.Indices (uint[]) - triangle indices for indexed drawing
+            // Transform: 
+            //   - Position: modelData.Position (synced from SimulationService)
+            //   - Rotation: modelData.Rotation (spinning at π/5 rad/s = 1 rotation per 10s)
+            //   - Scale: modelData.Scale (uniform scaling)
+            
+            // Log transformation updates (throttled to avoid spam)
+            // Console.WriteLine($"Model {modelData.FileName}: Pos={modelData.Position}, Rot={modelData.Rotation}");
+        }
+        else
+        {
+            // Model placeholder without mesh data
+            // This occurs if mesh fetch failed or is still in progress
         }
     }
 
