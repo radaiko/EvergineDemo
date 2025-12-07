@@ -55,6 +55,21 @@ public class EvergineControl : OpenGlControlBase
     public void SetRenderingService(EvergineRenderingService service)
     {
         _renderingService = service;
+        
+        // If the control is already loaded and has valid bounds, initialize the rendering service
+        if (!_initialized && _renderingService != null && Bounds.Width > 0 && Bounds.Height > 0)
+        {
+            try
+            {
+                _renderingService.Initialize((int)Bounds.Width, (int)Bounds.Height);
+                _initialized = true;
+                Console.WriteLine($"[EvergineControl] Rendering service initialized late (after control loaded). Viewport size: {(int)Bounds.Width}x{(int)Bounds.Height}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[EvergineControl] Error late-initializing rendering service: {ex.Message}");
+            }
+        }
     }
 
     /// <summary>
@@ -213,14 +228,14 @@ public class EvergineControl : OpenGlControlBase
     {
         if (!_initialized || _renderingService == null)
         {
-            // Clear to dark background if not initialized
-            gl.ClearColor(0.12f, 0.12f, 0.12f, 1.0f);
+            // Clear to grey background if not initialized (matching the desired background color)
+            gl.ClearColor(0.5f, 0.5f, 0.5f, 1.0f);
             gl.Clear(GlConsts.GL_COLOR_BUFFER_BIT | GlConsts.GL_DEPTH_BUFFER_BIT);
             
             if (_firstRenderWithoutInit)
             {
                 _firstRenderWithoutInit = false;
-                Console.WriteLine("[EvergineControl] Rendering not initialized yet - showing dark background");
+                Console.WriteLine("[EvergineControl] Rendering not initialized yet - showing grey background");
             }
             return;
         }
