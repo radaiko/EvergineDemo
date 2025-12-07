@@ -360,12 +360,16 @@ public class EvergineControl : OpenGlControlBase
     }
 
     /// <summary>
-    /// Render a placeholder visualization for a model
+    /// Render a placeholder visualization for a model (fallback when ModelRenderingService is not available)
     /// </summary>
+    /// <remarks>
+    /// This method is currently not used as ModelRenderingService is always initialized.
+    /// Kept for backwards compatibility and as documentation.
+    /// Model rendering requires modern OpenGL with shaders - see RenderModel method for details.
+    /// </remarks>
     private void RenderModelPlaceholder(GlInterface gl, EvergineRenderingService.ModelSceneObject model)
     {
-        // Note: Model rendering requires modern OpenGL with shaders
-        // See RenderModel method for details on what's needed
+        // Not implemented: Model rendering requires modern OpenGL with shaders
         // For now, models are tracked and their transformations are synced from the backend
     }
 

@@ -204,6 +204,8 @@ public class SceneConfiguration
         public float FieldOfView { get; init; } = MathHelper.ToRadians(45f);
         public float NearPlane { get; init; } = 0.1f;
         public float FarPlane { get; init; } = 1000f;
+        // Grey background (0.5, 0.5, 0.5) for better visibility
+        // TODO: Consider making this configurable through dependency injection or configuration file
         public Color BackgroundColor { get; init; } = new Color(0.5f, 0.5f, 0.5f);
     }
     
