@@ -267,4 +267,32 @@ public class RaycastServiceTests
         // This test verifies that rotation is being applied
         Assert.NotNull(hits); // Should not throw
     }
+
+    [Fact]
+    public void RaycastModels_RayAlignedWithAxis_HandlesZeroDirection()
+    {
+        // Arrange
+        // Ray pointing exactly along Y axis (X and Z components are zero)
+        var ray = new Ray(new Vector3(0, -5, 0), Vector3.UnitY);
+        
+        var models = new List<ModelRenderingService.ModelRenderData>
+        {
+            new ModelRenderingService.ModelRenderData
+            {
+                Id = "model1",
+                FileName = "test.stl",
+                Position = Vector3.Zero,
+                Rotation = Quaternion.Identity,
+                Scale = Vector3.One,
+            }
+        };
+
+        // Act
+        var hits = _raycastService.RaycastModels(ray, models);
+
+        // Assert
+        // Should handle the case where ray direction has zero components without division by zero
+        Assert.Single(hits);
+        Assert.Equal("model1", hits[0].ModelId);
+    }
 }

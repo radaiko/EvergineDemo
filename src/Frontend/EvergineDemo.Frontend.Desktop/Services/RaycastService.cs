@@ -88,9 +88,9 @@ public class RaycastService
         distance = float.MaxValue;
 
         // If model has mesh data, calculate accurate bounding box
-        if (model.HasMeshData && model.Vertices != null)
+        if (model.HasMeshData)
         {
-            var bounds = CalculateBoundingBox(model.Vertices);
+            var bounds = CalculateBoundingBox(model.Vertices!);
             
             // Transform bounding box by model's transform
             var transformedBounds = TransformBoundingBox(bounds, model.Position, model.Rotation, model.Scale);
@@ -182,11 +182,12 @@ public class RaycastService
     private bool RayIntersectsBoundingBox(Ray ray, BoundingBox box, out float distance)
     {
         distance = 0f;
+        const float epsilon = 1e-8f;
 
-        // Calculate inverse direction for efficiency
-        float invDirX = 1.0f / ray.Direction.X;
-        float invDirY = 1.0f / ray.Direction.Y;
-        float invDirZ = 1.0f / ray.Direction.Z;
+        // Calculate inverse direction for efficiency, handling near-zero components
+        float invDirX = MathF.Abs(ray.Direction.X) > epsilon ? 1.0f / ray.Direction.X : float.MaxValue;
+        float invDirY = MathF.Abs(ray.Direction.Y) > epsilon ? 1.0f / ray.Direction.Y : float.MaxValue;
+        float invDirZ = MathF.Abs(ray.Direction.Z) > epsilon ? 1.0f / ray.Direction.Z : float.MaxValue;
 
         // Calculate intersection distances for each axis
         float t1 = (box.Min.X - ray.Position.X) * invDirX;

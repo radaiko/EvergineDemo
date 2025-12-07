@@ -32,8 +32,8 @@ public class EvergineControl : OpenGlControlBase
 
     public EvergineControl()
     {
-        // Enable pointer events
-        Cursor = new Cursor(StandardCursorType.Hand);
+        // Set initial cursor to arrow (will change to hand on hover)
+        Cursor = new Cursor(StandardCursorType.Arrow);
         
         // Request rendering updates at 60 FPS
         var timer = new DispatcherTimer
