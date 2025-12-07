@@ -13,6 +13,7 @@ public class EvergineControl : OpenGlControlBase
 {
     private EvergineRenderingService? _renderingService;
     private bool _initialized = false;
+    private bool _firstRender = true;
     private float _rotation = 0f;
 
     public EvergineControl()
@@ -84,8 +85,12 @@ public class EvergineControl : OpenGlControlBase
 
         try
         {
-            // Clear the framebuffer with a dark blue/gray color
-            gl.ClearColor(0.12f, 0.12f, 0.15f, 1.0f);
+            // Get scene configuration
+            var sceneConfig = _renderingService.GetSceneConfiguration();
+            var bgColor = sceneConfig.Camera.BackgroundColor;
+            
+            // Clear the framebuffer with configured background color
+            gl.ClearColor(bgColor.R, bgColor.G, bgColor.B, bgColor.A);
             gl.Clear(GlConsts.GL_COLOR_BUFFER_BIT | GlConsts.GL_DEPTH_BUFFER_BIT);
 
             // Set up viewport
@@ -93,14 +98,26 @@ public class EvergineControl : OpenGlControlBase
             var height = (int)Bounds.Height;
             gl.Viewport(0, 0, width, height);
 
-            // Render 3D scene
-            // For now, we'll render a simple visualization
-            // In a full implementation, this would iterate through models and render them
+            // Render 3D scene elements
+            // Note: This is a simplified visualization. Full 3D rendering with proper
+            // camera projection, lighting, and geometry would require shader programs
+            // and vertex buffers. For now, we document the scene configuration.
             
             var models = _renderingService.GetSceneModels();
             
-            // Simple visualization: draw a grid to show the 3D space is working
-            RenderGrid(gl);
+            // Log scene information (floor, lights, camera) on first render
+            if (_firstRender)
+            {
+                _firstRender = false;
+                Console.WriteLine($"Scene Configuration:");
+                Console.WriteLine($"  Floor: {sceneConfig.RoomSize.X}x{sceneConfig.RoomSize.Z} at Y={sceneConfig.FloorY}");
+                Console.WriteLine($"  Camera: Position={sceneConfig.Camera.Position}, FOV={sceneConfig.Camera.FieldOfView}");
+                Console.WriteLine($"  Directional Light: Position={sceneConfig.DirectionalLight.Position}, Intensity={sceneConfig.DirectionalLight.Intensity}");
+                Console.WriteLine($"  Ambient Light: Position={sceneConfig.AmbientLight.Position}, Range={sceneConfig.AmbientLight.LightRange}");
+            }
+            
+            // Render simple grid visualization (floor at Y=0)
+            RenderSceneVisualization(gl, sceneConfig);
             
             // Render simple cubes for each model in the scene
             foreach (var model in models)
@@ -118,13 +135,27 @@ public class EvergineControl : OpenGlControlBase
     }
 
     /// <summary>
-    /// Render a simple grid to visualize the 3D space
+    /// Render a simple visualization of the scene (floor grid and room boundaries)
     /// </summary>
-    private void RenderGrid(GlInterface gl)
+    private void RenderSceneVisualization(GlInterface gl, SceneConfiguration sceneConfig)
     {
-        // This is a placeholder for grid rendering
-        // A full implementation would use shaders and vertex buffers
-        // For now, we just clear to indicate the system is working
+        // Note: Full 3D rendering would require:
+        // 1. Vertex shaders for transforming 3D coordinates to screen space
+        // 2. Fragment shaders for lighting calculations
+        // 3. Vertex buffers for floor mesh and room boundary geometry
+        // 4. Proper camera projection matrix (perspective or orthographic)
+        // 5. Model-view transformation matrices
+        //
+        // For this implementation, we're documenting the scene setup.
+        // The scene is configured with:
+        // - Floor plane at Y=0, size 10x10 units
+        // - Room boundaries (walls) at X,Z = ±5 units
+        // - Camera at (15, 8, 15) looking toward origin
+        // - Directional light from (5, 10, 5) at 60° down
+        // - Point light at (0, 8, 0) with 50-unit range for ambient-like lighting
+        //
+        // Future work: Implement actual 3D geometry rendering using Evergine's
+        // scene graph or custom OpenGL shaders.
     }
 
     /// <summary>
