@@ -53,11 +53,12 @@ public class EvergineRenderingService : IDisposable
         try
         {
             _initialized = true;
-            Console.WriteLine($"EvergineRenderingService initialized ({_width}x{_height})");
+            Console.WriteLine($"[EvergineRenderingService] Initialized rendering service ({_width}x{_height})");
+            Console.WriteLine($"[EvergineRenderingService] Scene configuration: Room size={_sceneConfig.RoomSize}, Floor Y={_sceneConfig.FloorY}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Failed to initialize rendering service: {ex.Message}");
+            Console.WriteLine($"[EvergineRenderingService] Failed to initialize rendering service: {ex.Message}");
             Console.WriteLine(ex.StackTrace);
             throw;
         }
@@ -92,7 +93,7 @@ public class EvergineRenderingService : IDisposable
         _width = width;
         _height = height;
 
-        Console.WriteLine($"Rendering surface resized to {_width}x{_height}");
+        Console.WriteLine($"[EvergineRenderingService] Rendering surface resized to {_width}x{_height}");
     }
 
     /// <summary>
@@ -112,7 +113,7 @@ public class EvergineRenderingService : IDisposable
             foreach (var modelId in modelsToRemove)
             {
                 _sceneModels.Remove(modelId);
-                Console.WriteLine($"Removed model from scene: {modelId}");
+                Console.WriteLine($"[EvergineRenderingService] Removed model from scene: {modelId}");
             }
 
             // Add or update models
@@ -137,11 +138,11 @@ public class EvergineRenderingService : IDisposable
                         Scale = model.Scale,
                         FileName = model.FileName
                     };
-                    Console.WriteLine($"Added model to scene: {model.FileName} at {model.Position}");
+                    Console.WriteLine($"[EvergineRenderingService] Added model to scene: {model.FileName} at {model.Position}");
                 }
             }
 
-            Console.WriteLine($"Scene updated: {_sceneModels.Count} models");
+            Console.WriteLine($"[EvergineRenderingService] Scene updated: {_sceneModels.Count} models");
         }
     }
 
@@ -172,7 +173,7 @@ public class EvergineRenderingService : IDisposable
         if (_initialized)
         {
             _initialized = false;
-            Console.WriteLine("EvergineRenderingService disposed");
+            Console.WriteLine("[EvergineRenderingService] Rendering service disposed");
         }
     }
 }
@@ -203,7 +204,9 @@ public class SceneConfiguration
         public float FieldOfView { get; init; } = MathHelper.ToRadians(45f);
         public float NearPlane { get; init; } = 0.1f;
         public float FarPlane { get; init; } = 1000f;
-        public Color BackgroundColor { get; init; } = new Color(0.12f, 0.12f, 0.15f);
+        // Grey background (0.5, 0.5, 0.5, 1.0) for better visibility
+        // TODO: Consider making this configurable through dependency injection or configuration file
+        public Color BackgroundColor { get; init; } = new Color(0.5f, 0.5f, 0.5f, 1.0f);
     }
     
     public class DirectionalLightConfig

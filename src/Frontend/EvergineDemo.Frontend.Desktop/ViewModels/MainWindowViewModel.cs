@@ -189,6 +189,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
             _hubConnection.On<RoomState>("ReceiveRoomState", (roomState) =>
             {
+                Console.WriteLine($"[MainWindowViewModel] Received room state update: {roomState.Models.Count} models");
                 Models.Clear();
                 foreach (var model in roomState.Models)
                 {
@@ -202,6 +203,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
             _hubConnection.On<ModelState>("ModelAdded", async (model) =>
             {
+                Console.WriteLine($"[MainWindowViewModel] Model added: {model.Id} - {model.FileName}");
                 Models.Add(model);
                 StatusText = $"New model added: {model.FileName}";
                 
@@ -215,6 +217,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
             _hubConnection.On<string>("ModelRemoved", (modelId) =>
             {
+                Console.WriteLine($"[MainWindowViewModel] Model removed: {modelId}");
                 var model = Models.FirstOrDefault(m => m.Id == modelId);
                 if (model != null)
                 {
@@ -247,11 +250,13 @@ public partial class MainWindowViewModel : ViewModelBase
             await _hubConnection.StartAsync();
             IsConnected = true;
             StatusText = "Connected to server";
+            Console.WriteLine($"[MainWindowViewModel] Successfully connected to {cleanUrl}");
         }
         catch (Exception ex)
         {
             StatusText = $"Connection failed: {ex.Message}";
             IsConnected = false;
+            Console.WriteLine($"[MainWindowViewModel] Connection failed: {ex.Message}");
         }
     }
 

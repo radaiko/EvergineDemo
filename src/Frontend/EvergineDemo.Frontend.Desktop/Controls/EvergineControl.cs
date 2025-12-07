@@ -16,9 +16,11 @@ public class EvergineControl : OpenGlControlBase
     private ModelRenderingService? _modelRenderingService;
     private RaycastService? _raycastService;
     private bool _initialized = false;
-    private bool _firstRender = true;
+    private bool _firstRenderWithoutInit = true;
+    private bool _firstRenderWithInit = true;
     private float _rotation = 0f;
     private string? _hoveredModelId = null;
+    private int _frameCount = 0;
     
     /// <summary>
     /// Event raised when a model is clicked
@@ -54,6 +56,21 @@ public class EvergineControl : OpenGlControlBase
     public void SetRenderingService(EvergineRenderingService service)
     {
         _renderingService = service;
+        
+        // If the control is already loaded and has valid bounds, initialize the rendering service
+        if (!_initialized && _renderingService != null && Bounds.Width > 0 && Bounds.Height > 0)
+        {
+            try
+            {
+                _renderingService.Initialize((int)Bounds.Width, (int)Bounds.Height);
+                _initialized = true;
+                Console.WriteLine($"[EvergineControl] Rendering service initialized late (after control loaded). Viewport size: {(int)Bounds.Width}x{(int)Bounds.Height}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[EvergineControl] Error late-initializing rendering service: {ex.Message}");
+            }
+        }
     }
 
     /// <summary>
@@ -180,9 +197,12 @@ public class EvergineControl : OpenGlControlBase
     protected override void OnOpenGlInit(GlInterface gl)
     {
         base.OnOpenGlInit(gl);
+        
+        Console.WriteLine($"[EvergineControl] OnOpenGlInit called. RenderingService null? {_renderingService == null}, Bounds: {Bounds.Width}x{Bounds.Height}");
 
         if (_renderingService == null)
         {
+            Console.WriteLine("[EvergineControl] WARNING: OnOpenGlInit called but renderingService is null. Will try late initialization.");
             return;
         }
 
@@ -196,11 +216,11 @@ public class EvergineControl : OpenGlControlBase
             _renderingService.Initialize((int)Bounds.Width, (int)Bounds.Height);
             _initialized = true;
             
-            Console.WriteLine("OpenGL context initialized for Evergine rendering");
+            Console.WriteLine($"[EvergineControl] OpenGL context initialized for Evergine rendering. Viewport size: {(int)Bounds.Width}x{(int)Bounds.Height}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error initializing OpenGL: {ex.Message}");
+            Console.WriteLine($"[EvergineControl] ERROR initializing OpenGL: {ex.Message}");
             Console.WriteLine(ex.StackTrace);
         }
     }
@@ -210,11 +230,28 @@ public class EvergineControl : OpenGlControlBase
     /// </summary>
     protected override void OnOpenGlRender(GlInterface gl, int fb)
     {
+        // Log every 100th frame to confirm rendering is happening
+        _frameCount++;
+        if (_frameCount % 100 == 1)
+        {
+            Console.WriteLine($"[EvergineControl] OnOpenGlRender called (frame {_frameCount}), initialized={_initialized}, bounds={Bounds.Width}x{Bounds.Height}");
+        }
+        
+        // Bind the framebuffer provided by Avalonia (critical for macOS)
+        const int GL_FRAMEBUFFER = 0x8D40;
+        gl.BindFramebuffer(GL_FRAMEBUFFER, fb);
+        
         if (!_initialized || _renderingService == null)
         {
-            // Clear to dark background if not initialized
-            gl.ClearColor(0.12f, 0.12f, 0.12f, 1.0f);
+            // Clear to grey background if not initialized (matching the desired background color)
+            gl.ClearColor(0.5f, 0.5f, 0.5f, 1.0f);
             gl.Clear(GlConsts.GL_COLOR_BUFFER_BIT | GlConsts.GL_DEPTH_BUFFER_BIT);
+            
+            if (_firstRenderWithoutInit)
+            {
+                _firstRenderWithoutInit = false;
+                Console.WriteLine("[EvergineControl] Rendering not initialized yet - showing grey background. Bounds: " + Bounds.Width + "x" + Bounds.Height);
+            }
             return;
         }
 
@@ -241,14 +278,16 @@ public class EvergineControl : OpenGlControlBase
             var models = _renderingService.GetSceneModels();
             
             // Log scene information (floor, lights, camera) on first render
-            if (_firstRender)
+            if (_firstRenderWithInit)
             {
-                _firstRender = false;
-                Console.WriteLine($"Scene Configuration:");
-                Console.WriteLine($"  Floor: {sceneConfig.RoomSize.X}x{sceneConfig.RoomSize.Z} at Y={sceneConfig.FloorY}");
-                Console.WriteLine($"  Camera: Position={sceneConfig.Camera.Position}, FOV={sceneConfig.Camera.FieldOfView}");
-                Console.WriteLine($"  Directional Light: Position={sceneConfig.DirectionalLight.Position}, Intensity={sceneConfig.DirectionalLight.Intensity}");
-                Console.WriteLine($"  Ambient Light: Position={sceneConfig.AmbientLight.Position}, Range={sceneConfig.AmbientLight.LightRange}");
+                _firstRenderWithInit = false;
+                Console.WriteLine($"[EvergineControl] === Scene Configuration ===");
+                Console.WriteLine($"[EvergineControl] Floor: {sceneConfig.RoomSize.X}x{sceneConfig.RoomSize.Z} at Y={sceneConfig.FloorY}");
+                Console.WriteLine($"[EvergineControl] Camera: Position={sceneConfig.Camera.Position}, FOV={sceneConfig.Camera.FieldOfView}");
+                Console.WriteLine($"[EvergineControl] Background Color: R={bgColor.R:F2}, G={bgColor.G:F2}, B={bgColor.B:F2}");
+                Console.WriteLine($"[EvergineControl] Directional Light: Position={sceneConfig.DirectionalLight.Position}, Intensity={sceneConfig.DirectionalLight.Intensity}");
+                Console.WriteLine($"[EvergineControl] Ambient Light: Position={sceneConfig.AmbientLight.Position}, Range={sceneConfig.AmbientLight.LightRange}");
+                Console.WriteLine($"[EvergineControl] Models in scene: {models.Count}");
             }
             
             // Render simple grid visualization (floor at Y=0)
@@ -286,14 +325,17 @@ public class EvergineControl : OpenGlControlBase
     /// </summary>
     private void RenderSceneVisualization(GlInterface gl, SceneConfiguration sceneConfig)
     {
-        // Note: Full 3D rendering would require:
-        // 1. Vertex shaders for transforming 3D coordinates to screen space
-        // 2. Fragment shaders for lighting calculations
-        // 3. Vertex buffers for floor mesh and room boundary geometry
-        // 4. Proper camera projection matrix (perspective or orthographic)
+        // Note: Avalonia's OpenGL support uses modern OpenGL (3.0+) which requires shaders.
+        // Legacy immediate mode functions (glBegin/glEnd, glVertex, glColor, glMatrixMode, etc.) 
+        // are not available in the GlInterface.
+        //
+        // Full 3D rendering requires:
+        // 1. Vertex shaders (GLSL) for transforming 3D coordinates to screen space
+        // 2. Fragment shaders (GLSL) for per-pixel color/lighting calculations
+        // 3. Vertex Buffer Objects (VBOs) for storing geometry data
+        // 4. Proper camera projection matrix (perspective)
         // 5. Model-view transformation matrices
         //
-        // For this implementation, we're documenting the scene setup.
         // The scene is configured with:
         // - Floor plane at Y=0, size 10x10 units
         // - Room boundaries (walls) at X,Z = ±5 units
@@ -301,8 +343,8 @@ public class EvergineControl : OpenGlControlBase
         // - Directional light from (5, 10, 5) at 60° down
         // - Point light at (0, 8, 0) with 50-unit range for ambient-like lighting
         //
-        // Future work: Implement actual 3D geometry rendering using Evergine's
-        // scene graph or custom OpenGL shaders.
+        // For now, we show a colored background to indicate the rendering system is active.
+        // Future work: Implement shader-based 3D geometry rendering.
     }
 
     /// <summary>
@@ -310,11 +352,10 @@ public class EvergineControl : OpenGlControlBase
     /// </summary>
     private void RenderModel(GlInterface gl, ModelRenderingService.ModelRenderData modelData)
     {
-        // Note: Full 3D rendering with proper vertex buffers and shaders would be implemented here
-        // For now, this documents that the model data (vertices, normals, indices) is available
-        // and transformations (position, rotation, scale) are being tracked.
-        // 
-        // A complete implementation would:
+        // Note: Rendering with modern OpenGL requires shaders and VBOs
+        // Avalonia's GlInterface doesn't support legacy immediate mode OpenGL
+        //
+        // Full 3D rendering with proper vertex buffers and shaders would:
         // 1. Create vertex buffer objects (VBOs) from modelData.Vertices
         // 2. Create element buffer objects (EBOs) from modelData.Indices
         // 3. Set up vertex shaders with MVP (Model-View-Projection) matrices
@@ -332,6 +373,7 @@ public class EvergineControl : OpenGlControlBase
         // ✓ Falling animation state tracked
         // ✓ Multiple models supported
         // ✓ Removed models cleaned up
+        // ✓ Background color now visible (grey instead of white)
         // - OpenGL vertex buffers and shaders (requires additional implementation)
         
         if (modelData.HasMeshData)
@@ -344,29 +386,21 @@ public class EvergineControl : OpenGlControlBase
             //   - Position: modelData.Position (synced from SimulationService)
             //   - Rotation: modelData.Rotation (spinning at π/5 rad/s = 1 rotation per 10s)
             //   - Scale: modelData.Scale (uniform scaling)
-            
-            // Log transformation updates (throttled to avoid spam)
-            // Console.WriteLine($"Model {modelData.FileName}: Pos={modelData.Position}, Rot={modelData.Rotation}");
-        }
-        else
-        {
-            // Model placeholder without mesh data
-            // This occurs if mesh fetch failed or is still in progress
         }
     }
 
     /// <summary>
-    /// Render a placeholder visualization for a model
+    /// Render a placeholder visualization for a model (fallback when ModelRenderingService is not available)
     /// </summary>
+    /// <remarks>
+    /// This method is currently not used as ModelRenderingService is always initialized.
+    /// Kept for backwards compatibility and as documentation.
+    /// Model rendering requires modern OpenGL with shaders - see RenderModel method for details.
+    /// </remarks>
     private void RenderModelPlaceholder(GlInterface gl, EvergineRenderingService.ModelSceneObject model)
     {
-        // This is a placeholder for model rendering
-        // A full implementation would:
-        // 1. Load STL geometry
-        // 2. Create vertex buffers
-        // 3. Set up shaders
-        // 4. Apply transformations based on model.Position, model.Rotation, model.Scale
-        // 5. Render the mesh
+        // Not implemented: Model rendering requires modern OpenGL with shaders
+        // For now, models are tracked and their transformations are synced from the backend
     }
 
     /// <summary>

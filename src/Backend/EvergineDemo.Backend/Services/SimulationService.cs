@@ -19,6 +19,7 @@ public class SimulationService : IHostedService, IDisposable
     private readonly object _stateLock = new();
     private readonly Dictionary<string, StlMesh> _modelMeshes = new();
     private DateTime _lastBroadcastTime = DateTime.MinValue;
+    private DateTime _lastDebugLogTime = DateTime.MinValue;
     
     // Physics constants
     private const float Gravity = -9.81f; // m/s^2
@@ -44,7 +45,7 @@ public class SimulationService : IHostedService, IDisposable
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Simulation service starting");
+        _logger.LogInformation("Simulation service starting - Update frequency: {UpdateFrequency}Hz, Broadcast frequency: {BroadcastFrequency}Hz", UpdateFrequency, BroadcastFrequency);
         _updateTimer = new Timer(UpdateSimulation, null, TimeSpan.Zero, TimeSpan.FromSeconds(DeltaTime));
         return Task.CompletedTask;
     }
@@ -121,12 +122,12 @@ public class SimulationService : IHostedService, IDisposable
 
         if (stlMesh != null)
         {
-            _logger.LogInformation("Added new model: {ModelId} - {FileName} with {TriangleCount} triangles", 
-                model.Id, fileName, stlMesh.Triangles.Count);
+            _logger.LogInformation("Added new model: {ModelId} - {FileName} with {TriangleCount} triangles at position {Position}", 
+                model.Id, fileName, stlMesh.Triangles.Count, model.Position);
         }
         else
         {
-            _logger.LogInformation("Added new model: {ModelId} - {FileName}", model.Id, fileName);
+            _logger.LogInformation("Added new model: {ModelId} - {FileName} at position {Position}", model.Id, fileName, model.Position);
         }
         
         // Notify all clients
@@ -252,6 +253,14 @@ public class SimulationService : IHostedService, IDisposable
         {
             var roomState = GetRoomState();
             await _hubContext.Clients.All.ReceiveRoomState(roomState);
+            
+            // Log broadcast once every 10 seconds
+            var now = DateTime.UtcNow;
+            if ((now - _lastDebugLogTime).TotalSeconds >= 10)
+            {
+                _lastDebugLogTime = now;
+                _logger.LogDebug("Broadcasting room state: {ModelCount} models", roomState.Models.Count);
+            }
         }
         catch (Exception ex)
         {

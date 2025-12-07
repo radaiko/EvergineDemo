@@ -53,7 +53,11 @@ public class ModelRenderingService
                     existingData.Vertices = StlToEvergineConverter.GetVertices(stlMesh);
                     existingData.Normals = StlToEvergineConverter.GetNormals(stlMesh);
                     existingData.Indices = StlToEvergineConverter.GetIndices(stlMesh);
-                    Console.WriteLine($"Updated mesh data for model {model.Id}: {stlMesh.Triangles.Count} triangles");
+                    Console.WriteLine($"[ModelRenderingService] Updated mesh data for model {model.Id} ({model.FileName}): {stlMesh.Triangles.Count} triangles, {existingData.Vertices?.Length ?? 0} vertices");
+                }
+                else
+                {
+                    Console.WriteLine($"[ModelRenderingService] Updated transforms for model {model.Id} ({model.FileName}): Pos={model.Position}, Rot={model.Rotation}");
                 }
             }
             else
@@ -74,11 +78,11 @@ public class ModelRenderingService
                     renderData.Vertices = StlToEvergineConverter.GetVertices(stlMesh);
                     renderData.Normals = StlToEvergineConverter.GetNormals(stlMesh);
                     renderData.Indices = StlToEvergineConverter.GetIndices(stlMesh);
-                    Console.WriteLine($"Added model {model.Id} with mesh data: {stlMesh.Triangles.Count} triangles");
+                    Console.WriteLine($"[ModelRenderingService] Added model {model.Id} ({model.FileName}) with mesh data: {stlMesh.Triangles.Count} triangles, {renderData.Vertices?.Length ?? 0} vertices");
                 }
                 else
                 {
-                    Console.WriteLine($"Added model {model.Id} without mesh data (placeholder)");
+                    Console.WriteLine($"[ModelRenderingService] Added model {model.Id} ({model.FileName}) without mesh data (placeholder)");
                 }
 
                 _modelData[model.Id] = renderData;
@@ -95,7 +99,7 @@ public class ModelRenderingService
         {
             if (_modelData.Remove(modelId))
             {
-                Console.WriteLine($"Removed model: {modelId}");
+                Console.WriteLine($"[ModelRenderingService] Removed model: {modelId}");
             }
         }
     }
