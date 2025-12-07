@@ -16,7 +16,8 @@ public class EvergineControl : OpenGlControlBase
     private ModelRenderingService? _modelRenderingService;
     private RaycastService? _raycastService;
     private bool _initialized = false;
-    private bool _firstRender = true;
+    private bool _firstRenderWithoutInit = true;
+    private bool _firstRenderWithInit = true;
     private float _rotation = 0f;
     private string? _hoveredModelId = null;
     
@@ -216,9 +217,9 @@ public class EvergineControl : OpenGlControlBase
             gl.ClearColor(0.12f, 0.12f, 0.12f, 1.0f);
             gl.Clear(GlConsts.GL_COLOR_BUFFER_BIT | GlConsts.GL_DEPTH_BUFFER_BIT);
             
-            if (_firstRender)
+            if (_firstRenderWithoutInit)
             {
-                _firstRender = false;
+                _firstRenderWithoutInit = false;
                 Console.WriteLine("[EvergineControl] Rendering not initialized yet - showing dark background");
             }
             return;
@@ -247,9 +248,9 @@ public class EvergineControl : OpenGlControlBase
             var models = _renderingService.GetSceneModels();
             
             // Log scene information (floor, lights, camera) on first render
-            if (_firstRender)
+            if (_firstRenderWithInit)
             {
-                _firstRender = false;
+                _firstRenderWithInit = false;
                 Console.WriteLine($"[EvergineControl] === Scene Configuration ===");
                 Console.WriteLine($"[EvergineControl] Floor: {sceneConfig.RoomSize.X}x{sceneConfig.RoomSize.Z} at Y={sceneConfig.FloorY}");
                 Console.WriteLine($"[EvergineControl] Camera: Position={sceneConfig.Camera.Position}, FOV={sceneConfig.Camera.FieldOfView}");

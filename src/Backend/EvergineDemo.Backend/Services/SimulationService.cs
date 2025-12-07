@@ -19,6 +19,7 @@ public class SimulationService : IHostedService, IDisposable
     private readonly object _stateLock = new();
     private readonly Dictionary<string, StlMesh> _modelMeshes = new();
     private DateTime _lastBroadcastTime = DateTime.MinValue;
+    private DateTime _lastDebugLogTime = DateTime.MinValue;
     
     // Physics constants
     private const float Gravity = -9.81f; // m/s^2
@@ -253,9 +254,11 @@ public class SimulationService : IHostedService, IDisposable
             var roomState = GetRoomState();
             await _hubContext.Clients.All.ReceiveRoomState(roomState);
             
-            // Log broadcast every 60 broadcasts (once every ~10 seconds at 6Hz)
-            if (DateTime.UtcNow.Second % 10 == 0)
+            // Log broadcast once every 10 seconds
+            var now = DateTime.UtcNow;
+            if ((now - _lastDebugLogTime).TotalSeconds >= 10)
             {
+                _lastDebugLogTime = now;
                 _logger.LogDebug("Broadcasting room state: {ModelCount} models", roomState.Models.Count);
             }
         }
