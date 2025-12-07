@@ -31,6 +31,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private IStorageProvider? _storageProvider;
     private EvergineRenderingService? _renderingService;
     private ModelRenderingService? _modelRenderingService;
+    private readonly System.Net.Http.HttpClient _httpClient = new();
 
     public MainWindowViewModel()
     {
@@ -130,8 +131,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
             // Send to backend - use clean URL
             var cleanUrl = ServerUrl.TrimEnd('/');
-            using var httpClient = new System.Net.Http.HttpClient();
-            var response = await httpClient.PostAsJsonAsync($"{cleanUrl}/api/model/upload", request);
+            var response = await _httpClient.PostAsJsonAsync($"{cleanUrl}/api/model/upload", request);
             
             if (response.IsSuccessStatusCode)
             {
@@ -269,8 +269,7 @@ public partial class MainWindowViewModel : ViewModelBase
         try
         {
             var cleanUrl = ServerUrl.TrimEnd('/');
-            using var httpClient = new System.Net.Http.HttpClient();
-            var response = await httpClient.GetAsync($"{cleanUrl}/api/model/{model.Id}/mesh");
+            var response = await _httpClient.GetAsync($"{cleanUrl}/api/model/{model.Id}/mesh");
 
             if (response.IsSuccessStatusCode)
             {

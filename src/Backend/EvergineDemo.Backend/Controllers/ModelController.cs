@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using EvergineDemo.Shared.Models;
+using EvergineDemo.Shared.Models.Stl;
 using EvergineDemo.Backend.Services;
 using EvergineDemo.Shared.Services;
 
@@ -83,7 +84,7 @@ public class ModelController : ControllerBase
     /// Get the STL mesh data for a specific model
     /// </summary>
     [HttpGet("{modelId}/mesh")]
-    public ActionResult GetModelMesh(string modelId)
+    public ActionResult<StlMesh> GetModelMesh(string modelId)
     {
         var mesh = _simulationService.GetModelMesh(modelId);
         if (mesh == null)

@@ -153,6 +153,27 @@ public class SimulationService : IHostedService, IDisposable
     }
 
     /// <summary>
+    /// Remove a model from the simulation
+    /// </summary>
+    public async Task RemoveModelAsync(string modelId)
+    {
+        lock (_stateLock)
+        {
+            var model = _roomState.Models.FirstOrDefault(m => m.Id == modelId);
+            if (model != null)
+            {
+                _roomState.Models.Remove(model);
+                _modelMeshes.Remove(modelId); // Clean up mesh data to prevent memory leak
+                _roomState.LastUpdate = DateTime.UtcNow;
+                _logger.LogInformation("Removed model: {ModelId}", modelId);
+            }
+        }
+
+        // Notify all clients
+        await _hubContext.Clients.All.ModelRemoved(modelId);
+    }
+
+    /// <summary>
     /// Get the STL mesh data for a given model ID
     /// </summary>
     public StlMesh? GetModelMesh(string modelId)
