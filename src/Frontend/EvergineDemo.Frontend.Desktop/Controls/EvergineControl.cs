@@ -20,6 +20,7 @@ public class EvergineControl : OpenGlControlBase
     private bool _firstRenderWithInit = true;
     private float _rotation = 0f;
     private string? _hoveredModelId = null;
+    private int _frameCount = 0;
     
     /// <summary>
     /// Event raised when a model is clicked
@@ -196,9 +197,12 @@ public class EvergineControl : OpenGlControlBase
     protected override void OnOpenGlInit(GlInterface gl)
     {
         base.OnOpenGlInit(gl);
+        
+        Console.WriteLine($"[EvergineControl] OnOpenGlInit called. RenderingService null? {_renderingService == null}, Bounds: {Bounds.Width}x{Bounds.Height}");
 
         if (_renderingService == null)
         {
+            Console.WriteLine("[EvergineControl] WARNING: OnOpenGlInit called but renderingService is null. Will try late initialization.");
             return;
         }
 
@@ -216,7 +220,7 @@ public class EvergineControl : OpenGlControlBase
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error initializing OpenGL: {ex.Message}");
+            Console.WriteLine($"[EvergineControl] ERROR initializing OpenGL: {ex.Message}");
             Console.WriteLine(ex.StackTrace);
         }
     }
@@ -226,6 +230,13 @@ public class EvergineControl : OpenGlControlBase
     /// </summary>
     protected override void OnOpenGlRender(GlInterface gl, int fb)
     {
+        // Log every 100th frame to confirm rendering is happening
+        _frameCount++;
+        if (_frameCount % 100 == 1)
+        {
+            Console.WriteLine($"[EvergineControl] OnOpenGlRender called (frame {_frameCount}), initialized={_initialized}, bounds={Bounds.Width}x{Bounds.Height}");
+        }
+        
         if (!_initialized || _renderingService == null)
         {
             // Clear to grey background if not initialized (matching the desired background color)
@@ -235,7 +246,7 @@ public class EvergineControl : OpenGlControlBase
             if (_firstRenderWithoutInit)
             {
                 _firstRenderWithoutInit = false;
-                Console.WriteLine("[EvergineControl] Rendering not initialized yet - showing grey background");
+                Console.WriteLine("[EvergineControl] Rendering not initialized yet - showing grey background. Bounds: " + Bounds.Width + "x" + Bounds.Height);
             }
             return;
         }
